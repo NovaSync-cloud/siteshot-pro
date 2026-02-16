@@ -82,19 +82,21 @@ The application is carefully designed to avoid memory crashes:
 - **Screenshots**: Playwright (Chromium headless)
 - **Image Processing**: Sharp
 - **Video Generation**: FFmpeg
-- **Frontend**: React (bundled without build tools for simplicity)
+- **Frontend**: React (via CDN, no build step required)
+- **Styling**: Tailwind CSS (via CDN)
 - **Hosting**: Docker on Render.com
 
 ## 📁 Project Structure
 
 ```
 siteshot-pro/
-├── server.js           # Express API with memory-optimized endpoints
-├── App.jsx             # React frontend dashboard
-├── package.json        # Dependencies
-├── Dockerfile          # Multi-stage build with Playwright + FFmpeg
-├── render.yaml         # Render deployment config
-└── README.md           # This file
+├── server.js              # Express API with memory-optimized endpoints
+├── public/
+│   └── index.html         # React app with Tailwind (CDN-based, no build needed)
+├── package.json           # Dependencies
+├── Dockerfile             # Simple build with Playwright + FFmpeg
+├── render.yaml            # Render deployment config
+└── README.md              # This file
 ```
 
 ## 🔧 Local Development

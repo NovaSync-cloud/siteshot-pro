@@ -19,12 +19,9 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
-// Serve React app
-app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, 'public', 'index.html'));
-});
+// Serve static files from public directory
+app.use(express.static(join(__dirname, 'public')));
 
 // CRITICAL: Lightweight Playwright config for 512MB RAM
 const BROWSER_ARGS = [
