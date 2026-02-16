@@ -1,6 +1,7 @@
 {
   "name": "siteshot-pro",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "type": "module",
   "description": "Professional Website Asset Generator",
   "main": "server.js",
   "scripts": {
