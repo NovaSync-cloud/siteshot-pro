@@ -1,0 +1,32 @@
+{
+  "name": "siteshot-pro",
+  "version": "1.0.0",
+  "description": "Generate marketing assets from any URL",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'No build step needed'"
+  },
+  "keywords": [
+    "screenshot",
+    "video",
+    "marketing",
+    "playwright"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "playwright": "^1.40.1",
+    "sharp": "^0.33.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "cors": "^2.8.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

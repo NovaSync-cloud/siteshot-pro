@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+temp/
+*.log
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+
+# Media files
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Render
+.render/
