@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteShot Pro - Professional Marketing Asset Generator</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      background-attachment: fixed;
+    }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+      50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.8); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes progress-bar {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    .float { animation: float 6s ease-in-out infinite; }
+    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .spinner { animation: spin 1s linear infinite; }
+    
+    .progress-bar {
+      animation: progress-bar 0.5s ease-out forwards;
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.5);
+      border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 92, 246, 0.7);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Progress Steps
+    const STEPS = [
+      { id: 1, label: 'Capturing Site', description: 'Taking high-resolution screenshot' },
+      { id: 2, label: 'Designing Collage', description: 'Creating aesthetic composition' },
+      { id: 3, label: 'Rendering Video', description: 'Generating smooth animation' }
+    ];
+
+    function App() {
+      const [url, setUrl] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [currentStep, setCurrentStep] = useState(0);
+      const [results, setResults] = useState(null);
+      const [error, setError] = useState('');
+
+      const validateUrl = (url) => {
+        try {
+          new URL(url);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      const handleGenerate = async () => {
+        if (!url) {
+          setError('Please enter a URL');
+          return;
+        }
+
+        if (!validateUrl(url)) {
+          setError('Please enter a valid URL (include http:// or https://)');
+          return;
+        }
+
+        setError('');
+        setLoading(true);
+        setResults(null);
+        setCurrentStep(0);
+
+        try {
+          // Simulate progress steps
+          const progressInterval = setInterval(() => {
+            setCurrentStep(prev => {
+              if (prev < STEPS.length) return prev + 1;
+              return prev;
+            });
+          }, 3000);
+
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url }),
+          });
+
+          clearInterval(progressInterval);
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Generation failed');
+          }
+
+          const data = await response.json();
+          
+          setResults({
+            screenshot: `data:image/png;base64,${data.assets.screenshot}`,
+            collage: `data:image/png;base64,${data.assets.collage}`,
+            video: `data:video/mp4;base64,${data.assets.video}`,
+            metadata: data.metadata
+          });
+
+          setCurrentStep(STEPS.length);
+
+        } catch (err) {
+          console.error('Error:', err);
+          setError(err.message || 'Failed to generate assets. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const downloadAsset = (dataUrl, filename) => {
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      };
+
+      return (
+        <div className="min-h-screen p-6 md:p-12">
+          {/* Hero Section */}
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-16 pt-8">
+              <div className="inline-block float mb-8">
+                <div className="glass-strong rounded-full p-6 pulse-glow">
+                  <span className="text-7xl">📸</span>
+                </div>
+              </div>
+              
+              <h1 className="text-6xl md:text-7xl font-black mb-4">
+                <span className="gradient-text">SiteShot</span>
+                <span className="text-white"> Pro</span>
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                Transform any website into stunning marketing assets.
+                <br />
+                <span className="text-purple-400 font-semibold">Screenshot. Collage. Video.</span> All in one click.
+              </p>
+            </div>
+
+            {/* URL Input Section */}
+            <div className="max-w-4xl mx-auto mb-16">
+              <div className="glass-strong rounded-3xl p-8 md:p-12 shadow-2xl">
+                <label className="block text-lg font-semibold text-gray-200 mb-4">
+                  🌐 Website URL
+                </label>
+                
+                <div className="flex flex-col md:flex-row gap-4">
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleGenerate()}
+                    placeholder="https://example.com"
+                    disabled={loading}
+                    className="flex-1 px-6 py-4 text-lg bg-white/10 border-2 border-white/20 rounded-2xl focus:border-purple-500 focus:outline-none transition-all placeholder-gray-400 text-white disabled:opacity-50"
+                  />
+                  
+                  <button
+                    onClick={handleGenerate}
+                    disabled={loading}
+                    className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-2xl font-bold text-lg shadow-lg hover:shadow-purple-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {loading ? '⏳ Generating...' : '✨ Generate Assets'}
+                  </button>
+                </div>
+
+                {error && (
+                  <div className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-200 flex items-center gap-3">
+                    <span className="text-2xl">⚠️</span>
+                    <span>{error}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Progress Stepper */}
+            {loading && (
+              <div className="max-w-4xl mx-auto mb-16">
+                <div className="glass-strong rounded-3xl p-8 md:p-12">
+                  <h3 className="text-2xl font-bold mb-8 text-center">Processing Your Assets</h3>
+                  
+                  <div className="space-y-6">
+                    {STEPS.map((step, index) => {
+                      const isActive = currentStep === step.id;
+                      const isCompleted = currentStep > step.id;
+                      
+                      return (
+                        <div key={step.id} className="flex items-center gap-4">
+                          {/* Step Circle */}
+                          <div className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold transition-all ${
+                            isCompleted 
+                              ? 'bg-green-500 text-white' 
+                              : isActive 
+                              ? 'bg-purple-600 text-white pulse-glow' 
+                              : 'bg-white/10 text-gray-400'
+                          }`}>
+                            {isCompleted ? '✓' : step.id}
+                          </div>
+                          
+                          {/* Step Info */}
+                          <div className="flex-1">
+                            <div className={`text-lg font-semibold ${isActive ? 'text-purple-400' : isCompleted ? 'text-green-400' : 'text-gray-400'}`}>
+                              {step.label}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              {step.description}
+                            </div>
+                          </div>
+                          
+                          {/* Spinner */}
+                          {isActive && (
+                            <div className="w-8 h-8 border-4 border-purple-600/30 border-t-purple-600 rounded-full spinner"></div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mt-8 h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-purple-600 to-indigo-600 transition-all duration-500"
+                      style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Results Gallery */}
+            {results && !loading && (
+              <div className="max-w-7xl mx-auto">
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl font-bold mb-4">
+                    <span className="text-green-400">✓</span> Assets Generated Successfully!
+                  </h2>
+                  <p className="text-gray-400">Download your professional marketing materials below</p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Full Screenshot */}
+                  <div className="glass-strong rounded-3xl overflow-hidden shadow-2xl hover:shadow-purple-500/30 transition-all">
+                    <div className="p-6 bg-gradient-to-br from-purple-600/20 to-indigo-600/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold flex items-center gap-2">
+                          🖼️ Full Screenshot
+                        </h3>
+                        <button
+                          onClick={() => downloadAsset(results.screenshot, 'siteshot-screenshot.png')}
+                          className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-all"
+                        >
+                          ⬇️ Download
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-400">High-resolution capture</p>
+                    </div>
+                    <div className="p-4 bg-black/20">
+                      <img 
+                        src={results.screenshot} 
+                        alt="Full screenshot" 
+                        className="w-full h-auto rounded-xl border border-white/10"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Aesthetic Collage */}
+                  <div className="glass-strong rounded-3xl overflow-hidden shadow-2xl hover:shadow-pink-500/30 transition-all">
+                    <div className="p-6 bg-gradient-to-br from-pink-600/20 to-rose-600/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold flex items-center gap-2">
+                          ✨ Aesthetic Collage
+                        </h3>
+                        <button
+                          onClick={() => downloadAsset(results.collage, 'siteshot-collage.png')}
+                          className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-all"
+                        >
+                          ⬇️ Download
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-400">Vision board style (1080x1920)</p>
+                    </div>
+                    <div className="p-4 bg-black/20">
+                      <img 
+                        src={results.collage} 
+                        alt="Aesthetic collage" 
+                        className="w-full h-auto rounded-xl border border-white/10"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Scrolling Video */}
+                  <div className="glass-strong rounded-3xl overflow-hidden shadow-2xl hover:shadow-cyan-500/30 transition-all">
+                    <div className="p-6 bg-gradient-to-br from-cyan-600/20 to-blue-600/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold flex items-center gap-2">
+                          🎬 Scrolling Video
+                        </h3>
+                        <button
+                          onClick={() => downloadAsset(results.video, 'siteshot-video.mp4')}
+                          className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-all"
+                        >
+                          ⬇️ Download
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-400">5-second panning animation</p>
+                    </div>
+                    <div className="p-4 bg-black/20">
+                      <video 
+                        src={results.video} 
+                        controls 
+                        autoPlay 
+                        loop 
+                        muted
+                        className="w-full h-auto rounded-xl border border-white/10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* New Generation Button */}
+                <div className="text-center mt-12">
+                  <button
+                    onClick={() => {
+                      setResults(null);
+                      setUrl('');
+                    }}
+                    className="px-8 py-4 glass-strong hover:bg-white/15 rounded-2xl font-semibold text-lg transition-all"
+                  >
+                    🔄 Generate New Assets
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            {!loading && (
+              <div className="text-center mt-20 pb-12">
+                <div className="glass rounded-2xl p-6 max-w-2xl mx-auto">
+                  <p className="text-gray-400 text-sm">
+                    Powered by <span className="text-purple-400 font-semibold">Playwright</span> • 
+                    <span className="text-pink-400 font-semibold"> Sharp</span> • 
+                    <span className="text-cyan-400 font-semibold"> FFmpeg</span>
+                  </p>
+                  <p className="text-gray-500 text-xs mt-2">
+                    Optimized for Render.com Free Tier (512MB RAM)
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Render
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
