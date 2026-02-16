@@ -1,12 +1,5 @@
 services:
   - type: web
     name: siteshot-pro
-    env: docker
+    runtime: docker
     plan: free
-    region: oregon
-    healthCheckPath: /api/health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NODE_OPTIONS
-        value: --max-old-space-size=384 --optimize-for-size
