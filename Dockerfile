@@ -1,7 +1,6 @@
-# Use a standard Node image
 FROM node:20-slim
 
-# Install ONLY the essential things for Playwright and FFmpeg
+# Install dependencies for Playwright, FFmpeg, and Sharp
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     libgbm-dev \
@@ -14,14 +13,20 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Install dependencies
+# Copy and install dependencies
 COPY package*.json ./
 RUN npm install --production
 
-# Install only Chromium (save space/memory)
+# Install Chromium
 RUN npx playwright install chromium
 
+# Copy all files
 COPY . .
 
-# Start simply without any "extra" flags
+# Ensure temp directory exists
+RUN mkdir -p temp && chmod 777 temp
+
+EXPOSE 3000
+
+# Run without memory-intensive flags
 CMD ["node", "server.js"]
