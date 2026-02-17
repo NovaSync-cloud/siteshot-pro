@@ -25,43 +25,35 @@ app.post('/api/generate', async (req, res) => {
     const videoPath = path.join(tempDir, `video-${id}.mp4`);
 
     try {
-        console.log(`[ELITE] Starting Full-Page Capture: ${url}`);
-
-        // 1. FULL-PAGE CAPTURE (HD Mode)
-        // We tell Microlink to capture the FULL PAGE and use a large 1920 width
-        const micUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&screenshot.full_page=true&screenshot.type=png&screenshot.width=1920&screenshot.device_scale_factor=2`;
-        
+        // 1. FULL PAGE CAPTURE
+        const micUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&screenshot.full_page=true&screenshot.type=png&screenshot.width=1280`;
         const response = await axios({ url: micUrl, responseType: 'arraybuffer' });
         await fs.writeFile(shotPath, response.data);
-        console.log("✓ Full-page captured");
 
-        // 2. PRO COLLAGE (Vision Board Style)
-        const bg = await sharp({
-            create: { width: 1080, height: 1920, channels: 3, background: { r: 10, g: 10, b: 15 } }
+        // 2. PRO COLLAGE
+        const background = await sharp({
+            create: { width: 1080, height: 1920, channels: 3, background: { r: 15, g: 23, b: 42 } }
         }).jpeg().toBuffer();
 
         const foreground = await sharp(shotPath)
-            .resize(900, null) // Keep it crisp
-            .extract({ left: 0, top: 0, width: 900, height: 1400 }) // Take a nice "slice" for the mockup
+            .resize(900, null)
+            .extract({ left: 0, top: 0, width: 900, height: 1400 })
             .toBuffer();
 
-        await sharp(bg).composite([{ input: foreground, gravity: 'center' }]).toFile(collagePath);
-        console.log("✓ Collage created");
+        await sharp(background).composite([{ input: foreground, gravity: 'center' }]).toFile(collagePath);
 
-        // 3. CINEMATIC 15-SECOND VIDEO (Entire Page Scroll)
-        console.log("Rendering 15s HD video...");
+        // 3. 10-SECOND CINEMATIC VIDEO
         await new Promise((resolve, reject) => {
-            const duration = 15; // 15 SECONDS FOR A SMOOTH SHOWCASE
+            const duration = 10; 
             ffmpeg(shotPath)
                 .loop(duration)
-                .fps(30)
+                .fps(25)
                 .videoFilters([
-                    // This creates the professional "smooth scroll" from top to bottom
-                    `scale=1080:-1`, 
-                    `crop=1080:1920:0:ih*t/${duration}-1920*t/${duration}`
+                    `scale=720:-1`, 
+                    `crop=720:1280:0:ih*t/${duration}-1280*t/${duration}`
                 ])
                 .videoCodec('libx264')
-                .outputOptions(['-preset ultrafast', '-pix_fmt yuv420p', '-crf 18'])
+                .outputOptions(['-preset ultrafast', '-pix_fmt yuv420p'])
                 .save(videoPath)
                 .on('end', resolve)
                 .on('error', reject);
@@ -73,16 +65,11 @@ app.post('/api/generate', async (req, res) => {
             video: (await fs.readFile(videoPath)).toString('base64')
         });
 
-        // CLEANUP (Wait a bit to ensure memory is free)
-        setTimeout(async () => {
-            try {
-                await Promise.all([fs.unlink(shotPath), fs.unlink(collagePath), fs.unlink(videoPath)]);
-            } catch (e) {}
-        }, 5000);
+        // Cleanup
+        await Promise.all([fs.unlink(shotPath), fs.unlink(collagePath), fs.unlink(videoPath)]);
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "High-res generation failed. The site might be too heavy." });
+        res.status(500).json({ error: "Generation failed. The page might be too long." });
     }
 });
 
